@@ -1,5 +1,5 @@
 import streamlit as st
-import requests
+from deepface import DeepFace
 from PIL import Image, ImageOps
 import numpy as np
 import spotipy
@@ -10,9 +10,9 @@ emotion_labels = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutr
 
 # Predefined playlist URLs for Happy Emotion
 happy_playlists = [
-    "https://open.spotify.com/playlist/2gSHA2hK9utrPK6ldtJgws",
-    "https://open.spotify.com/playlist/1fF73hY1QzokhWz5RTeoRb",
-    "https://open.spotify.com/playlist/4F9XjRMCeyxlmysK16V85W"
+    "https://open.spotify.com/playlist/2gSHA2hK9utrPK6ldtJgws",  # Example Happy Playlist 1
+    "https://open.spotify.com/playlist/1fF73hY1QzokhWz5RTeoRb",  # Example Happy Playlist 2
+    "https://open.spotify.com/playlist/4F9XjRMCeyxlmysK16V85W"   # Example Happy Playlist 3
 ]
 
 # Spotify-friendly emotion-to-query mapping for other emotions
@@ -32,36 +32,23 @@ client_secret = "b2ebd040751049399d1f885a665ee606"
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id,
                                                            client_secret=client_secret))
 
-def detect_emotion_api(image):
-    import io
-    buffered = io.BytesIO()
-    image.save(buffered, format="JPEG")
-    files = {'file': buffered.getvalue()}
-    try:
-        response = requests.post("https://example-emotion-api.com/predict", files=files)
-        result = response.json()
-        return result.get("dominant_emotion", "neutral")
-    except Exception as e:
-        st.error(f"Emotion detection failed: {e}")
-        return "neutral"
-
 def search_spotify_playlists(query_list, limit=3):
     playlists = []
-    if isinstance(query_list, str):
-        query_list = [query_list]
     for query in query_list:
         try:
             results = sp.search(q=query, type='playlist', limit=limit)
+            # Ensure the response contains valid 'playlists' data
             if 'playlists' in results and 'items' in results['playlists']:
                 items = results['playlists']['items']
                 for item in items:
                     if 'external_urls' in item:
                         playlists.append(item['external_urls']['spotify'])
             if len(playlists) >= limit:
-                break
+                break  # Stop searching once we've found enough playlists
         except Exception as e:
             st.error(f"🔍 Spotify Search Error: {e}")
-
+    
+    # Return an empty list if no playlists found
     if not playlists:
         st.warning("😕 No playlists found for this emotion. Try another or check your internet connection.")
     return playlists
@@ -105,53 +92,63 @@ if st.session_state.camera_active:
 
     if img_file is not None:
         img = Image.open(img_file)
+
+        # ✅ Mirror the image
         mirrored_img = ImageOps.mirror(img)
         st.image(mirrored_img, use_container_width=True)
 
-        st.info("⏳ Detecting emotion via API...")
+        img_np = np.array(mirrored_img)
+        st.info("⏳ Detecting emotion with DeepFace...")
 
-        detected_emotion = detect_emotion_api(mirrored_img).lower()
+        try:
+            result = DeepFace.analyze(img_path=img_np, actions=["emotion"], enforce_detection=False)
+            detected_emotion = result[0]["dominant_emotion"].lower()
 
-        st.session_state.override_emotion = st.selectbox(
-            "Change Emotion (if incorrect):",
-            options=emotion_labels,
-            index=emotion_labels.index(detected_emotion) if detected_emotion in emotion_labels else 0
-        )
+            # Emotion override
+            st.session_state.override_emotion = st.selectbox(
+                "Change Emotion (if incorrect):",
+                options=emotion_labels,
+                index=emotion_labels.index(detected_emotion)
+            )
 
-        st.session_state.emotion_changed = (st.session_state.override_emotion != detected_emotion)
-        emotion = st.session_state.override_emotion
-        st.subheader(f"🎯 Final Emotion Selected: **{emotion.capitalize()}**")
+            # Check if emotion was changed
+            st.session_state.emotion_changed = (st.session_state.override_emotion != detected_emotion)
 
-        if st.session_state.emotion_changed:
-            st.caption("🙇 Sorry if we detected the wrong emotion — we're still working on improving accuracy!")
+            emotion = st.session_state.override_emotion
+            st.subheader(f"🎯 Final Emotion Selected: **{emotion.capitalize()}**")
 
-        if emotion == "happy":
-            st.success(f"🎶 Recommended Playlists for **{emotion.capitalize()}**:")
-            for link in happy_playlists:
-                st.markdown(f"[Open Playlist]({link})")
-                st.components.v1.iframe(link.replace("open.spotify.com", "open.spotify.com/embed"), height=80)
+            if st.session_state.emotion_changed:
+                st.caption("🙇 Sorry if we detected the wrong emotion — we're still working on improving accuracy!")
 
-        elif emotion in emotion_queries:
-            st.success(f"🎶 Recommended Playlists for **{emotion.capitalize()}**:")
-            queries = emotion_queries[emotion]
-            playlists = search_spotify_playlists(queries)
-
-            if playlists:
-                for link in playlists:
+            # Show music recommendations
+            if emotion == "happy":
+                st.success(f"🎶 Recommended Playlists for **{emotion.capitalize()}**:")
+                # Show predefined playlists for "happy"
+                for link in happy_playlists:
                     st.markdown(f"[Open Playlist]({link})")
                     st.components.v1.iframe(link.replace("open.spotify.com", "open.spotify.com/embed"), height=80)
 
-                with st.expander("❤️ Did you like the recommendation?"):
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if st.button("👍 Like"):
-                            for link in playlists:
-                                if link not in st.session_state.favorites:
-                                    st.session_state.favorites.append(link)
-                            st.success("Added to favorites!")
-                    with col2:
-                        if st.button("👎 Dislike"):
-                            st.info("We'll try to improve your experience!")
+            elif emotion in emotion_queries:
+                st.success(f"🎶 Recommended Playlists for **{emotion.capitalize()}**:")
+                queries = emotion_queries[emotion]
+                playlists = search_spotify_playlists(queries)
 
-        else:
-            st.warning("😕 Unable to match your emotion with music right now.")
+                if playlists:
+                    for link in playlists:
+                        st.markdown(f"[Open Playlist]({link})")
+                        st.components.v1.iframe(link.replace("open.spotify.com", "open.spotify.com/embed"), height=80)
+
+                    with st.expander("❤️ Did you like the recommendation?"):
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            if st.button("👍 Like"):
+                                for link in playlists:
+                                    if link not in st.session_state.favorites:
+                                        st.session_state.favorites.append(link)
+                                st.success("Added to favorites!")
+                        with col2:
+                            if st.button("👎 Dislike"):
+                                st.info("We'll try to improve your experience!")
+
+        except Exception as e:
+            st.error(f"😓 Something went wrong: {e}")

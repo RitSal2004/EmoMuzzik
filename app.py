@@ -18,7 +18,7 @@ happy_playlists = [
 # Spotify-friendly emotion-to-query mapping for other emotions
 emotion_queries = {
     "sad": ["sad songs", "sad music", "melancholy vibes", "emotional music", "slow songs"],
-    "angry": "Heavy music",
+    "angry": "workout music",
     "fear": ["dark cinematic", "horror soundtrack", "suspense music", "creepy beats"],
     "surprise": ["Unexpected hits", "eclectic mix", "surprise music", "mood shifts"],
     "disgust": ["grunge punk", "punk rock", "heavy metal", "edgy tracks"],

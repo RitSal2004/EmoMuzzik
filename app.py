@@ -5,11 +5,11 @@ import io
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
-# Face++ API credentials (replace with your credentials)
+# Face++ API credentials
 API_KEY = "_FQ9lRoO4yAtMRYdN-GwNEb49hTge24N"
 API_SECRET = "favg_rbXiy3yT-1NZXaEr3g0Mgmix-GY"
 
-# Emotion labels supported by Face++ API
+# Emotion labels
 emotion_labels = ['angry', 'sad', 'happy', 'neutral', 'surprise', 'fear', 'disgust']
 
 # Predefined Happy Playlists
@@ -19,7 +19,7 @@ happy_playlists = [
     "https://open.spotify.com/playlist/4F9XjRMCeyxlmysK16V85W"
 ]
 
-# Other emotion mappings (including fear and disgust)
+# Other emotion mappings
 emotion_queries = {
     "sad": ["sad songs", "melancholy vibes", "emotional music", "slow songs"],
     "angry": "workout music",

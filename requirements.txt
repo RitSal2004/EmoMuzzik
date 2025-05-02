@@ -8,5 +8,6 @@ scikit-learn
 tensorflow
 keras
 matplotlib
+deepface
 librosa
 soundfile

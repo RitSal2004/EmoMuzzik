@@ -1,6 +1,7 @@
 streamlit
 opencv-python
 fer
+spotipy
 moviepy
 numpy
 pandas

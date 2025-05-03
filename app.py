@@ -145,7 +145,12 @@ if st.session_state.camera_active:
             options=emotion_labels,
             index=emotion_labels.index(detected_emotion)
         )
+
+        # Check if the user changed the detected emotion
         emotion = selected_emotion
+        if emotion != detected_emotion:
+            st.warning(f"🙇 Sorry if we detected the wrong emotion — we're still improving! Apologies for the inconvenience.")
+
         st.subheader(f"🎯 Emotion: **{emotion.capitalize()}**")
         st.success("🎵 Recommended Playlists:")
 

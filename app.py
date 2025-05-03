@@ -41,7 +41,7 @@ emotion_playlists = {
         "https://open.spotify.com/playlist/37i9dQZF1DWSiZVO2J6WeI"
     ],
     "surprise": [
-        "https://open.spotify.com/playlist/37i9dQZF1DXc6IFF23C9jj",
+        "https://open.spotify.com/playlist/1EcICTdTjFDyS46OicRCZv",
         "https://open.spotify.com/playlist/37i9dQZF1DX2sUQwD7tbmL",
         "https://open.spotify.com/playlist/37i9dQZF1DXa2PvUpywmrr",
         "https://open.spotify.com/playlist/37i9dQZF1DWSIO2QWRavWZ",

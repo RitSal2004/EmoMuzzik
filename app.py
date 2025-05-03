@@ -10,39 +10,60 @@ API_SECRET = "favg_rbXiy3yT-1NZXaEr3g0Mgmix-GY"
 # Emotion labels
 emotion_labels = ['angry', 'sad', 'happy', 'neutral', 'surprise', 'fear', 'disgust']
 
-# Static playlist mapping
+# Static playlist mapping with 4–5 playlists per emotion
 emotion_playlists = {
     "happy": [
         "https://open.spotify.com/playlist/2gSHA2hK9utrPK6ldtJgws",
+        "https://open.spotify.com/playlist/37i9dQZF1DX3rxVfibe1L0",
+        "https://open.spotify.com/playlist/37i9dQZF1DXdPec7aLTmlC",
+        "https://open.spotify.com/playlist/37i9dQZF1DWU0ScTcjJBdj",
         "https://open.spotify.com/playlist/1fF73hY1QzokhWz5RTeoRb"
     ],
     "sad": [
+        "https://open.spotify.com/playlist/37i9dQZF1DWVrtsSlLKzro",
         "https://open.spotify.com/playlist/37i9dQZF1DX7qK8ma5wgG1",
-        "https://open.spotify.com/playlist/37i9dQZF1DWSqBruwoIXkA"
+        "https://open.spotify.com/playlist/37i9dQZF1DX7gIoKXt0gmx",
+        "https://open.spotify.com/playlist/37i9dQZF1DWSqBruwoIXkA",
+        "https://open.spotify.com/playlist/3ZgmfR6lsnCwdffZUan8EA"
     ],
     "angry": [
         "https://open.spotify.com/playlist/37i9dQZF1DWX83CujKHHOn",
-        "https://open.spotify.com/playlist/37i9dQZF1DWWJOmJ7nRx0C"
+        "https://open.spotify.com/playlist/37i9dQZF1DX3YSRoSdA634",
+        "https://open.spotify.com/playlist/37i9dQZF1DWZJhOVGWqUKF",
+        "https://open.spotify.com/playlist/37i9dQZF1DWWJOmJ7nRx0C",
+        "https://open.spotify.com/playlist/4Pb0JtCwYcyTnW52yCu3PN"
     ],
     "neutral": [
         "https://open.spotify.com/playlist/37i9dQZF1DWUzFXarNiofw",
-        "https://open.spotify.com/playlist/37i9dQZF1DWYBO1MoTDhZI"
+        "https://open.spotify.com/playlist/37i9dQZF1DWYBO1MoTDhZI",
+        "https://open.spotify.com/playlist/37i9dQZF1DWVFeEut75IAL",
+        "https://open.spotify.com/playlist/37i9dQZF1DWWQRwui0ExPn",
+        "https://open.spotify.com/playlist/37i9dQZF1DWSiZVO2J6WeI"
     ],
     "surprise": [
         "https://open.spotify.com/playlist/37i9dQZF1DXc6IFF23C9jj",
-        "https://open.spotify.com/playlist/37i9dQZF1DX2sUQwD7tbmL"
+        "https://open.spotify.com/playlist/37i9dQZF1DX2sUQwD7tbmL",
+        "https://open.spotify.com/playlist/37i9dQZF1DXa2PvUpywmrr",
+        "https://open.spotify.com/playlist/37i9dQZF1DWSIO2QWRavWZ",
+        "https://open.spotify.com/playlist/37i9dQZF1DX2SK4ytI2KAZ"
     ],
     "fear": [
         "https://open.spotify.com/playlist/37i9dQZF1DWVIiR5qh2MFm",
-        "https://open.spotify.com/playlist/37i9dQZF1DWW2c0wGeM9SI"
+        "https://open.spotify.com/playlist/37i9dQZF1DWZqd5JICZI0u",
+        "https://open.spotify.com/playlist/37i9dQZF1DWXLeA8Omikj7",
+        "https://open.spotify.com/playlist/37i9dQZF1DWU4EQPjP9ZpS",
+        "https://open.spotify.com/playlist/37i9dQZF1DX1s9knjP51Oa"
     ],
     "disgust": [
+        "https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO",
         "https://open.spotify.com/playlist/37i9dQZF1DX1tyCD9QhIWF",
-        "https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO"
+        "https://open.spotify.com/playlist/37i9dQZF1DX5gQonLbZD9s",
+        "https://open.spotify.com/playlist/37i9dQZF1DWUvHZA1zLcjW",
+        "https://open.spotify.com/playlist/37i9dQZF1DX4SBhb3fqCJd"
     ]
 }
 
-# Face++ Emotion Detection
+# Emotion detection using Face++
 def get_emotion_from_faceplusplus(image):
     buffered = io.BytesIO()
     image.save(buffered, format="JPEG")
@@ -88,10 +109,8 @@ if "camera_active" not in st.session_state:
     st.session_state.camera_active = False
 if "favorites" not in st.session_state:
     st.session_state.favorites = []
-if "override_emotion" not in st.session_state:
-    st.session_state.override_emotion = None
 
-# Controls
+# Camera controls
 col1, col2 = st.columns(2)
 with col1:
     if st.button("▶️ Start Camera"):
@@ -109,7 +128,7 @@ with st.expander("⭐ My Favorite Tracks"):
     else:
         st.info("No favorites yet!")
 
-# Main app
+# Main app logic
 if st.session_state.camera_active:
     img_file = st.camera_input("📸 Capture your photo")
 
@@ -145,4 +164,4 @@ if st.session_state.camera_active:
                     st.success("Added to favorites!")
             with col2:
                 if st.button("👎 Dislike"):
-                    st.info("Thanks for the feedback!")
+                    st.info("Thanks for your feedback!")

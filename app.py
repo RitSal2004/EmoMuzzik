@@ -19,10 +19,10 @@ happy_playlists = [
     "https://open.spotify.com/playlist/4F9XjRMCeyxlmysK16V85W"
 ]
 
-# Other emotion mappings
+# Other emotion mappings (all as lists)
 emotion_queries = {
     "sad": ["sad songs", "melancholy vibes", "emotional music", "slow songs"],
-    "angry": "workout music",
+    "angry": ["workout music"],
     "surprise": ["Unexpected hits", "eclectic mix", "surprise music", "mood shifts"],
     "neutral": ["calm lofi", "chill beats", "study music", "relaxing vibes"],
     "fear": ["intense music", "thriller soundtrack", "suspense music"],
@@ -38,6 +38,9 @@ sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id,
 
 def search_spotify_playlists(query_list, limit=3):
     playlists = []
+    if not query_list or not isinstance(query_list, list):
+        query_list = ["mood music"]  # fallback query
+
     for query in query_list:
         try:
             results = sp.search(q=query, type='playlist', limit=limit)
@@ -53,12 +56,10 @@ def search_spotify_playlists(query_list, limit=3):
 
 # Face++ API for emotion detection
 def get_emotion_from_faceplusplus(image: Image.Image):
-    # Convert the image to byte format
     buffered = io.BytesIO()
     image.save(buffered, format="JPEG")
     buffered.seek(0)
 
-    # Prepare the data for the Face++ API
     url = "https://api-us.faceplusplus.com/facepp/v3/detect"
     files = {
         'image_file': buffered
@@ -70,7 +71,6 @@ def get_emotion_from_faceplusplus(image: Image.Image):
     }
 
     try:
-        # Make the API request
         response = requests.post(url, files=files, data=params)
         data = response.json()
 
@@ -78,7 +78,6 @@ def get_emotion_from_faceplusplus(image: Image.Image):
             st.warning("No faces detected, defaulting to neutral.")
             return "neutral"
 
-        # Extract emotions from the response
         face = data["faces"][0]["attributes"]["emotion"]
         emotions = {
             "angry": face["anger"],
@@ -90,7 +89,6 @@ def get_emotion_from_faceplusplus(image: Image.Image):
             "disgust": face["disgust"]
         }
 
-        # Determine the emotion with the highest score
         detected_emotion = max(emotions, key=emotions.get)
         return detected_emotion
 
@@ -120,7 +118,6 @@ with col2:
     if st.button("⏹️ Stop Camera"):
         st.session_state.camera_active = False
 
-# View Favorites
 with st.expander("⭐ View My Favorite Tracks"):
     if st.session_state.favorites:
         for fav in st.session_state.favorites:
@@ -153,13 +150,14 @@ if st.session_state.camera_active:
         if st.session_state.emotion_changed:
             st.caption("🙇 Sorry if we detected the wrong emotion — we're still improving!")
 
-        st.success(f"🎶 Recommended Playlists for **{emotion.capitalize()}**:")        
+        st.success(f"🎶 Recommended Playlists for **{emotion.capitalize()}**:")
+
         if emotion == "happy":
             for link in happy_playlists:
                 st.markdown(f"[Open Playlist]({link})")
                 st.components.v1.iframe(link.replace("open.spotify.com", "open.spotify.com/embed"), height=80)
-        elif emotion in emotion_queries:
-            queries = emotion_queries[emotion]
+        else:
+            queries = emotion_queries.get(emotion, ["mood music"])
             playlists = search_spotify_playlists(queries)
             for link in playlists:
                 st.markdown(f"[Open Playlist]({link})")

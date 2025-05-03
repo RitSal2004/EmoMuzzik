@@ -31,7 +31,7 @@ emotion_playlists = {
         "https://open.spotify.com/playlist/37i9dQZF1DX3YSRoSdA634",
         "https://open.spotify.com/playlist/37i9dQZF1DWZJhOVGWqUKF",
         "https://open.spotify.com/playlist/37i9dQZF1DWWJOmJ7nRx0C",
-        "https://open.spotify.com/playlist/4Pb0JtCwYcyTnW52yCu3PN"
+        "https://open.spotify.com/playlist/37i9dQZF1DX3F2FV2rwnpT"
     ],
     "neutral": [
         "https://open.spotify.com/playlist/37i9dQZF1DWUzFXarNiofw",

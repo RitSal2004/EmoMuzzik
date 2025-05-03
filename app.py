@@ -22,7 +22,7 @@ happy_playlists = [
 # Other emotion mappings (all as lists)
 emotion_queries = {
     "sad": ["sad songs", "melancholy vibes", "emotional music", "slow songs"],
-    "angry": ["workout music"],
+    "angry": ["workout music", "aggressive rock", "rage playlist"],
     "surprise": ["Unexpected hits", "eclectic mix", "surprise music", "mood shifts"],
     "neutral": ["calm lofi", "chill beats", "study music", "relaxing vibes"],
     "fear": ["intense music", "thriller soundtrack", "suspense music"],
@@ -39,11 +39,13 @@ sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id,
 def search_spotify_playlists(query_list, limit=3):
     playlists = []
     if not query_list or not isinstance(query_list, list):
-        query_list = ["mood music"]  # fallback query
+        query_list = ["mood music"]  # fallback if None or not a list
 
     for query in query_list:
+        if not query.strip():  # Skip empty or blank strings
+            continue
         try:
-            results = sp.search(q=query, type='playlist', limit=limit)
+            results = sp.search(q=query.strip(), type='playlist', limit=limit)
             items = results.get('playlists', {}).get('items', [])
             for item in items:
                 if 'external_urls' in item:
@@ -53,7 +55,7 @@ def search_spotify_playlists(query_list, limit=3):
         except Exception as e:
             st.error(f"🔍 Spotify Search Error: {e}")
     return playlists
-
+    
 # Face++ API for emotion detection
 def get_emotion_from_faceplusplus(image: Image.Image):
     buffered = io.BytesIO()

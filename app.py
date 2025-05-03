@@ -2,8 +2,6 @@ import streamlit as st
 import requests
 from PIL import Image, ImageOps
 import io
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
 
 # Face++ API credentials
 API_KEY = "_FQ9lRoO4yAtMRYdN-GwNEb49hTge24N"
@@ -12,52 +10,40 @@ API_SECRET = "favg_rbXiy3yT-1NZXaEr3g0Mgmix-GY"
 # Emotion labels
 emotion_labels = ['angry', 'sad', 'happy', 'neutral', 'surprise', 'fear', 'disgust']
 
-# Happy playlists
-happy_playlists = [
-    "https://open.spotify.com/playlist/2gSHA2hK9utrPK6ldtJgws",
-    "https://open.spotify.com/playlist/1fF73hY1QzokhWz5RTeoRb",
-    "https://open.spotify.com/playlist/4F9XjRMCeyxlmysK16V85W"
-]
-
-# Queries for other emotions
-emotion_queries = {
-    "sad": ["sad songs", "melancholy vibes"],
-    "angry": ["workout music", "rage tracks"],
-    "surprise": ["eclectic mix", "unexpected hits"],
-    "neutral": ["lofi chill", "study beats"],
-    "fear": ["thriller soundtracks", "dark ambient"],
-    "disgust": ["unusual soundscapes", "gritty tunes"]
+# Static playlist mapping
+emotion_playlists = {
+    "happy": [
+        "https://open.spotify.com/playlist/2gSHA2hK9utrPK6ldtJgws",
+        "https://open.spotify.com/playlist/1fF73hY1QzokhWz5RTeoRb"
+    ],
+    "sad": [
+        "https://open.spotify.com/playlist/37i9dQZF1DX7qK8ma5wgG1",
+        "https://open.spotify.com/playlist/37i9dQZF1DWSqBruwoIXkA"
+    ],
+    "angry": [
+        "https://open.spotify.com/playlist/37i9dQZF1DWX83CujKHHOn",
+        "https://open.spotify.com/playlist/37i9dQZF1DWWJOmJ7nRx0C"
+    ],
+    "neutral": [
+        "https://open.spotify.com/playlist/37i9dQZF1DWUzFXarNiofw",
+        "https://open.spotify.com/playlist/37i9dQZF1DWYBO1MoTDhZI"
+    ],
+    "surprise": [
+        "https://open.spotify.com/playlist/37i9dQZF1DXc6IFF23C9jj",
+        "https://open.spotify.com/playlist/37i9dQZF1DX2sUQwD7tbmL"
+    ],
+    "fear": [
+        "https://open.spotify.com/playlist/37i9dQZF1DWVIiR5qh2MFm",
+        "https://open.spotify.com/playlist/37i9dQZF1DWW2c0wGeM9SI"
+    ],
+    "disgust": [
+        "https://open.spotify.com/playlist/37i9dQZF1DX1tyCD9QhIWF",
+        "https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO"
+    ]
 }
 
-# Spotify API auth
-client_id = "3346818c664d48b09df8025c33b6e25c"
-client_secret = "b2ebd040751049399d1f885a665ee606"
-sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
-
-
-def search_spotify_playlists(query_list, limit=3):
-    playlists = []
-    if not query_list or not isinstance(query_list, list):
-        return playlists
-
-    for query in query_list:
-        if not query.strip():
-            continue
-        try:
-            results = sp.search(q=query, type='playlist', limit=limit)
-            items = results.get('playlists', {}).get('items', [])
-            for item in items:
-                url = item.get('external_urls', {}).get('spotify')
-                if url and url not in playlists:
-                    playlists.append(url)
-            if len(playlists) >= limit:
-                break
-        except Exception as e:
-            st.error(f"🔍 Spotify Search Error: {e}")
-    return playlists
-
-
-def get_emotion_from_faceplusplus(image: Image.Image):
+# Face++ Emotion Detection
+def get_emotion_from_faceplusplus(image):
     buffered = io.BytesIO()
     image.save(buffered, format="JPEG")
     buffered.seek(0)
@@ -73,7 +59,6 @@ def get_emotion_from_faceplusplus(image: Image.Image):
     try:
         response = requests.post(url, files=files, data=params)
         data = response.json()
-
         if "faces" not in data or len(data["faces"]) == 0:
             st.warning("No faces detected — defaulting to neutral.")
             return "neutral"
@@ -94,9 +79,7 @@ def get_emotion_from_faceplusplus(image: Image.Image):
         st.error(f"❌ Emotion detection failed: {e}")
         return "neutral"
 
-
-# ---------- Streamlit UI ----------
-
+# Streamlit UI
 st.set_page_config(page_title="EmoMuzzik", page_icon="🎧")
 st.title("🎭 Welcome to EmoMuzzik")
 st.subheader("🎶 Your Emotion-Based Spotify Music Companion")
@@ -117,7 +100,7 @@ with col2:
     if st.button("⏹️ Stop Camera"):
         st.session_state.camera_active = False
 
-# Favorites view
+# Favorites section
 with st.expander("⭐ My Favorite Tracks"):
     if st.session_state.favorites:
         for link in st.session_state.favorites:
@@ -126,7 +109,7 @@ with st.expander("⭐ My Favorite Tracks"):
     else:
         st.info("No favorites yet!")
 
-# Main functionality
+# Main app
 if st.session_state.camera_active:
     img_file = st.camera_input("📸 Capture your photo")
 
@@ -138,24 +121,16 @@ if st.session_state.camera_active:
         st.info("⏳ Detecting your emotion...")
         detected_emotion = get_emotion_from_faceplusplus(mirrored_img)
 
-        # User can override
         selected_emotion = st.selectbox(
             "Detected Emotion (change if wrong):",
             options=emotion_labels,
             index=emotion_labels.index(detected_emotion)
         )
-        st.session_state.override_emotion = selected_emotion
         emotion = selected_emotion
-
         st.subheader(f"🎯 Emotion: **{emotion.capitalize()}**")
-        st.success(f"🎵 Recommended Playlists:")
+        st.success("🎵 Recommended Playlists:")
 
-        playlists = []
-        if emotion == "happy":
-            playlists = happy_playlists
-        elif emotion in emotion_queries:
-            playlists = search_spotify_playlists(emotion_queries.get(emotion, []))
-
+        playlists = emotion_playlists.get(emotion, [])
         for link in playlists:
             st.markdown(f"[Open Playlist]({link})")
             st.components.v1.iframe(link.replace("open.spotify.com", "open.spotify.com/embed"), height=80)
@@ -170,4 +145,4 @@ if st.session_state.camera_active:
                     st.success("Added to favorites!")
             with col2:
                 if st.button("👎 Dislike"):
-                    st.info("We’ll try to improve the recommendations!")
+                    st.info("Thanks for the feedback!")

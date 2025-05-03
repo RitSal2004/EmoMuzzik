@@ -137,7 +137,7 @@ if st.session_state.camera_active:
         mirrored_img = ImageOps.mirror(img)
         st.image(mirrored_img, use_container_width=True)
 
-        st.info("⏳ Sending image to Face++ API...")
+        st.info("⏳ Detecting your emotion...")
         detected_emotion = get_emotion_from_faceplusplus(mirrored_img)
 
         st.session_state.override_emotion = st.selectbox(
